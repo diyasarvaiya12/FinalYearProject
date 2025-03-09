@@ -16,28 +16,46 @@ import Footer from './components/Footer';
 import SearchBar from './components/SearchBar';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   return (
-    <div className='px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'>
-      <ToastContainer />
-      <Navbar />
-      <SearchBar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/collection" element={<Collection />} />
-        <Route path="/tryon" element={<TryOn />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/product/:productId" element={<Product />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/place-order" element={<PlaceOrders />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/booking" element={<Booking />} /> {/* Add Booking route */}
-      </Routes>
-      <Footer />
-    </div>
+    <AuthProvider>
+      <div className='px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'>
+        <ToastContainer />
+        <Navbar />
+        <SearchBar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/collection" element={<Collection />} />
+          <Route path="/tryon" element={<TryOn />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/product/:productId" element={<Product />} />
+          <Route 
+            path="/cart" 
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/login" element={<Login />} />
+          <Route path="/place-order" element={<PlaceOrders />} />
+          <Route 
+            path="/orders" 
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/booking" element={<Booking />} /> {/* Add Booking route */}
+        </Routes>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 };
 
