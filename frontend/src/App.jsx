@@ -51,7 +51,7 @@ const App = () => {
             } 
           />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/booking" element={<Booking />} /> {/* Add Booking route */}
+          <Route path="/booking" element={<Booking />} />
         </Routes>
         <Footer />
       </div>
