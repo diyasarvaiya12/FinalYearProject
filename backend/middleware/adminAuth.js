@@ -4,10 +4,15 @@ const adminAuth = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            console.log("Missing or invalid Authorization header:", authHeader);
             return res.status(401).json({ success: false, message: "Not Authorized. Login Again." });
         }
 
         const token = authHeader.split(" ")[1];
+        if (!token) {
+            console.log("No token found in Authorization header");
+            return res.status(401).json({ success: false, message: "No token provided" });
+        }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET || "diyahastikeval");  // 🔒 Uses environment variable
 

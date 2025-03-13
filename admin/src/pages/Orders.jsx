@@ -6,7 +6,7 @@ import { assets } from '../assets/assets'
 
 const Orders = ({ token }) => {
   const [orders, setOrders] = useState([])
-
+  console.log(token)
   // Fetch All Orders
   const fetchAllOrders = async () => {
     if (!token) {
@@ -16,11 +16,13 @@ const Orders = ({ token }) => {
 
     try {
       const response = await axios.post(
-        `${backendUrl}/api/order/list`, // ✅ Corrected URL using backendUrl variable
+        `${backendUrl}/api/order/list`,
         {},
-        { headers: { token } }
+        { headers: { 
+          'Authorization': `Bearer ${token}`
+        }}
       )
-
+      console.log("Response", response)
       if (response.data.success) {
         setOrders(response.data.orders.reverse())
       } else {
@@ -38,7 +40,9 @@ const Orders = ({ token }) => {
       const response = await axios.post(
         `${backendUrl}/api/order/status`,
         { orderId, status: event.target.value },
-        { headers: { token } }
+        { headers: { 
+          'Authorization': `Bearer ${token}`
+        }}
       )
 
       if (response.data.success) {
