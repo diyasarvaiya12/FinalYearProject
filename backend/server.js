@@ -6,6 +6,8 @@ import connectCloudinary from './config/cloudinary.js';
 import userRouter from './routes/userRoute.js';
 import tryOnRoutes from './routes/tryOnRoutes.js';
 import productRouter from './routes/productRoute.js';
+import cartRouter from './routes/cartRoutes.js';
+import orderRouter from './routes/orderRoute.js';
 
 dotenv.config(); // Load environment variables
 
@@ -24,7 +26,9 @@ app.use(cors());
 // Routes
 app.use('/api/user', userRouter);
 app.use('/api/products', productRouter);
-app.use('/api/tryon', tryOnRoutes);  // Corrected placement of tryOnRoutes
+app.use('/api/tryon', tryOnRoutes);  
+app.use('/api/cart', cartRouter);
+app.use('/api/order',orderRouter);
 
 // Default Route
 app.get('/', (req, res) => {
