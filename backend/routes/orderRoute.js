@@ -19,6 +19,6 @@ orderRouter.post('/userorders',authUser,userOrders)
 
 // verify payment
 //orderRouter.post('/verifyStripe',authUser, verifyStripe)
-//orderRouter.post('/verifyRazorpay',authUser, verifyRazorpay)
+orderRouter.post('/verifyRazorpay',authUser, verifyRazorpay)
 
 export default orderRouter

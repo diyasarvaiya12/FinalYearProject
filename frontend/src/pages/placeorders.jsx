@@ -31,7 +31,7 @@ const PlaceOrder = () => {
 
     const initPay = (order) => {
         const options = {
-            key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+            key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_XCs0E3IXY05Ek0",
             amount: order.amount,
             currency: order.currency,
             name: 'Order Payment',
@@ -41,7 +41,10 @@ const PlaceOrder = () => {
             handler: async (response) => {
                 console.log(response)
                 try {
-                    const response = await axios.post('http://localhost:4000/api/order/place', orderData, { headers: { token } })
+                    const response = await axios.post('http://localhost:4000/api/order/place', order, { 
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+            
 
                     if (data.success) {
                         navigate('/orders')
@@ -71,17 +74,18 @@ const PlaceOrder = () => {
                     }
                 }
             }
-
+            
             let orderData = {
                 address: formData,
                 items: orderItems,
-                amount: getCartAmount() + delivery_fee
+                amount: (getCartAmount() + delivery_fee) * 100 // Razorpay requires amount in paise
             }
+            
 
             switch (method) {
 
                 case 'cod':
-                    const response = await axios.post(backendUrl + '/api/order/place', orderData, { headers: { token } })
+                    const response = await axios.post('http://localhost:4000/api/order/place', orderData, { headers: { token } })
                     if (response.data.success) {
                         setCartItems({})
                         navigate('/orders')
@@ -91,7 +95,7 @@ const PlaceOrder = () => {
                     break;
 
             //     case 'stripe':
-            //         const responseStripe = await axios.post(backendUrl + '/api/order/stripe', orderData, { headers: { token } })
+            //         const responseStripe = await axios.post('http://localhost:4000/api/order/stripe', orderData, { headers: { token } })
             //         if (responseStripe.data.success) {
             //             const { session_url } = responseStripe.data
             //             window.location.replace(session_url)
@@ -100,15 +104,19 @@ const PlaceOrder = () => {
             //         }
             //         break;
 
-            //     case 'razorpay':
-            //         const responseRazorpay = await axios.post(backendUrl + '/api/order/razorpay', orderData, { headers: { token } })
-            //         if (responseRazorpay.data.success) {
-            //             initPay(responseRazorpay.data.order)
-            //         }
-            //         break;
+                    case 'razorpay':
+                        const responseRazorpay = await axios.post('http://localhost:4000/api/order/razorpay', orderData, { headers: { token } })
+                        console.log("Razorpay Response:", responseRazorpay.data)
+                        if (responseRazorpay.data.success) {
+                            initPay(responseRazorpay.data.order) // Ensure `order` exists in the response
+                        } else {
+                            toast.error(responseRazorpay.data.message || 'Razorpay Order Creation Failed')
+                        }
+                        break;
+            
 
-            //     default:
-            //         break;
+                default:
+                    break;
                }
 
         } catch (error) {
