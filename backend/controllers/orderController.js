@@ -127,43 +127,46 @@ const verifyStripe = async (req,res) => {
 }
 
 // Placing orders using Razorpay Method
-const placeOrderRazorpay = async (req,res) => {
+const placeOrderRazorpay = async (req, res) => {
     try {
-        
-        const { userId, items, amount, address} = req.body
+        const { userId, items, amount, address } = req.body;
 
         const orderData = {
             userId,
             items,
             address,
             amount,
-            paymentMethod:"Razorpay",
-            payment:false,
+            paymentMethod: "Razorpay",
+            payment: false,
             date: Date.now()
-        }
+        };
 
-        const newOrder = new orderModel(orderData)
-        await newOrder.save()
+        const newOrder = new orderModel(orderData);
+        await newOrder.save();
 
         const options = {
-            amount: amount ,
+            amount: amount,
             currency: currency.toUpperCase(),
-            receipt : newOrder._id.toString()
-        }
+            receipt: newOrder._id.toString()
+        };
 
-        await razorpayInstance.orders.create(options, (error,order)=>{
-            if (error) {
-                console.log(error)
-                return res.json({success:false, message: error})
+        // Use Promise instead of callback
+        const order = await razorpayInstance.orders.create(options);
+        res.json({ 
+            success: true, 
+            order: {
+                id: order.id,
+                amount: order.amount,
+                currency: order.currency,
+                receipt: order.receipt
             }
-            res.json({success:true,order})
-        })
+        });
 
     } catch (error) {
-        console.log(error)
-        res.json({success:false,message:error.message})
+        console.log(error);
+        res.json({ success: false, message: error.message });
     }
-}
+};
 
 const verifyRazorpay = async (req,res) => {
     try {

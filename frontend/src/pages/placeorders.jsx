@@ -5,11 +5,13 @@ import { assets } from '../assets/assets'
 import { ShopContext } from '../context/ShopContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { useAuth } from '../context/AuthContext'
 
 const PlaceOrder = () => {
 
     const [method, setMethod] = useState('cod');
-    const { navigate, backendUrl, token, cartItems, setCartItems, getCartAmount, delivery_fee, products } = useContext(ShopContext);
+    const { navigate, backendUrl, token, user, cartItems, setCartItems, getCartAmount, delivery_fee, products } = useContext(ShopContext);
+    const { user: authUser } = useAuth();
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -38,21 +40,32 @@ const PlaceOrder = () => {
             description: 'Order Payment',
             order_id: order.id,
             receipt: order.receipt,
-            handler: async (response) => {
-                console.log(response)
+            handler: async (razorpayResponse) => {
+                console.log(razorpayResponse)
                 try {
-                    const response = await axios.post('http://localhost:4000/api/order/place', order, { 
-                        headers: { Authorization: `Bearer ${token}` }
-                    })
-            
+                    const apiResponse = await axios.post(
+                        `${backendUrl}/api/order/verifyRazorpay`,
+                        {
+                            razorpay_order_id: razorpayResponse.razorpay_order_id,
+                            razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+                            razorpay_signature: razorpayResponse.razorpay_signature,
+                            userId: authUser.id
+                        },
+                        { 
+                            headers: { Authorization: `Bearer ${token}` }
+                        }
+                    )
 
-                    if (data.success) {
+                    if (apiResponse.data.success) {
                         navigate('/orders')
                         setCartItems({})
+                        toast.success("Payment successful!")
+                    } else {
+                        toast.error(apiResponse.data.message || "Payment verification failed")
                     }
                 } catch (error) {
                     console.log(error)
-                    toast.error(error)
+                    toast.error(error.message || "An error occurred during payment verification")
                 }
             }
         }
@@ -76,6 +89,7 @@ const PlaceOrder = () => {
             }
             
             let orderData = {
+                userId: authUser.id,
                 address: formData,
                 items: orderItems,
                 amount: (getCartAmount() + delivery_fee) * 100 // Razorpay requires amount in paise
@@ -85,7 +99,9 @@ const PlaceOrder = () => {
             switch (method) {
 
                 case 'cod':
-                    const response = await axios.post('http://localhost:4000/api/order/place', orderData, { headers: { token } })
+                    const response = await axios.post('http://localhost:4000/api/order/place', orderData, 
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    )
                     if (response.data.success) {
                         setCartItems({})
                         navigate('/orders')
@@ -105,7 +121,11 @@ const PlaceOrder = () => {
             //         break;
 
                     case 'razorpay':
-                        const responseRazorpay = await axios.post('http://localhost:4000/api/order/razorpay', orderData, { headers: { token } })
+                        const responseRazorpay = await axios.post(
+                            `${backendUrl}/api/order/razorpay`,
+                            orderData,
+                            { headers: { Authorization: `Bearer ${token}` } }
+                        )
                         console.log("Razorpay Response:", responseRazorpay.data)
                         if (responseRazorpay.data.success) {
                             initPay(responseRazorpay.data.order) // Ensure `order` exists in the response
