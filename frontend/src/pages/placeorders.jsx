@@ -110,15 +110,16 @@ const PlaceOrder = () => {
                     }
                     break;
 
-            //     case 'stripe':
-            //         const responseStripe = await axios.post('http://localhost:4000/api/order/stripe', orderData, { headers: { token } })
-            //         if (responseStripe.data.success) {
-            //             const { session_url } = responseStripe.data
-            //             window.location.replace(session_url)
-            //         } else {
-            //             toast.error(responseStripe.data.message)
-            //         }
-            //         break;
+                // case 'stripe':
+                //     const responseStripe = await axios.post('http://localhost:4000/api/order/stripe', orderData, { headers: { token } })
+                //     if (responseStripe.data.success) {
+                //         const { session_url } = responseStripe.data
+                //         window.location.replace(session_url)
+                //     } else {
+                //         toast.error(responseStripe.data.message)
+                //     }
+                //     break;
+                
 
                     case 'razorpay':
                         const responseRazorpay = await axios.post(

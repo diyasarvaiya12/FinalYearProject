@@ -2,6 +2,7 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 // import Stripe from 'stripe'
 import razorpay from 'razorpay'
+import { sendOrderConfirmationEmail } from "../utils/email_service.js";
 
 // global variables
 const currency = 'inr'
@@ -26,7 +27,7 @@ const placeOrder = async (req,res) => {
             userId,
             items,
             address,
-            amount,
+            amount:amount/100,
             paymentMethod:"COD",
             payment:false,
             date: Date.now()
@@ -34,6 +35,8 @@ const placeOrder = async (req,res) => {
 
         const newOrder = new orderModel(orderData)
         await newOrder.save()
+
+        await sendOrderConfirmationEmail(orderData.address.email, orderData.address, orderData.items, orderData.amount);
 
         await userModel.findByIdAndUpdate(userId,{cartData:{}})
 
@@ -135,7 +138,7 @@ const placeOrderRazorpay = async (req, res) => {
             userId,
             items,
             address,
-            amount,
+            amount:amount/100,
             paymentMethod: "Razorpay",
             payment: false,
             date: Date.now()
@@ -143,6 +146,11 @@ const placeOrderRazorpay = async (req, res) => {
 
         const newOrder = new orderModel(orderData);
         await newOrder.save();
+        //console.log(orderData.address.email);
+        // console.log(orderData.address);
+        // console.log(orderData.items);
+        // console.log( orderData.amount);
+        await sendOrderConfirmationEmail(orderData.address.email, orderData.address, orderData.items, orderData.amount);
 
         const options = {
             amount: amount,
