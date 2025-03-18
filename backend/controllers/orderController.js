@@ -16,39 +16,57 @@ const razorpayInstance = new razorpay({
     key_secret : process.env.RAZORPAY_KEY_SECRET || "bWksCJEyqYy0UIZzXFqNtLDB",
 })
 
-// Placing orders using COD Method
-const placeOrder = async (req,res) => {
-    
-    try {
+const generateOrderId = async () => {
+    let uniqueOrderId;
+    let isUnique = false;
+
+    while (!isUnique) {
+        const randomNumber = Math.floor(10000 + Math.random() * 90000); // Generates a 5-digit number
+        uniqueOrderId = `ord${randomNumber}`;
         
-        const { userId, items, amount, address} = req.body;
+        // Check if this orderId already exists
+        const existingOrder = await orderModel.findOne({ orderId: uniqueOrderId });
+        if (!existingOrder) {
+            isUnique = true;
+        }
+    }
+
+    return uniqueOrderId;
+};
+
+// Placing orders using COD Method
+const placeOrder = async (req, res) => {
+    try {
+        const { userId, items, amount, address } = req.body;
+
+        const orderId = await generateOrderId(); // Custom order ID
 
         const orderData = {
+            orderId,
             userId,
             items,
             address,
-            amount:amount/100,
-            paymentMethod:"COD",
-            payment:false,
+            amount: amount / 100,
+            paymentMethod: "COD",
+            payment: false,
             date: Date.now()
-        }
+        };
 
-        const newOrder = new orderModel(orderData)
-        await newOrder.save()
+        const newOrder = new orderModel(orderData);
+        await newOrder.save();
 
         await sendOrderConfirmationEmail(orderData.address.email, orderData.address, orderData.items, orderData.amount);
 
-        await userModel.findByIdAndUpdate(userId,{cartData:{}})
+        await userModel.findByIdAndUpdate(userId, { cartData: {} });
 
-        res.json({success:true,message:"Order Placed"})
-
+        res.json({ success: true, message: "Order Placed", orderId });
 
     } catch (error) {
-        console.log(error)
-        res.json({success:false,message:error.message})
+        console.log(error);
+        res.json({ success: false, message: error.message });
     }
+};
 
-}
 
 // Placing orders using Stripe Method
 const placeOrderStripe = async (req,res) => {

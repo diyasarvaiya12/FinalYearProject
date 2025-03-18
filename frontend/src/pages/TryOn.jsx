@@ -114,6 +114,7 @@ const TryOn = () => {
         ];
         
         if (selectedNail) {
+          console.log(selectedNail);
           fingerTips.forEach(({ tip, base }) => {
             const tipPoint = landmarks[tip];
             const basePoint = landmarks[base];
