@@ -152,7 +152,10 @@ const placeOrderRazorpay = async (req, res) => {
     try {
         const { userId, items, amount, address } = req.body;
 
+        const orderId = await generateOrderId(); // Generate unique order ID
+
         const orderData = {
+            orderId, // Add the generated orderId
             userId,
             items,
             address,
@@ -164,10 +167,6 @@ const placeOrderRazorpay = async (req, res) => {
 
         const newOrder = new orderModel(orderData);
         await newOrder.save();
-        //console.log(orderData.address.email);
-        // console.log(orderData.address);
-        // console.log(orderData.items);
-        // console.log( orderData.amount);
         await sendOrderConfirmationEmail(orderData.address.email, orderData.address, orderData.items, orderData.amount);
 
         const options = {
