@@ -18,6 +18,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Faq from './pages/FAQ';
 
 const App = () => {
   return (
@@ -52,6 +53,7 @@ const App = () => {
           />
           <Route path="/contact" element={<Contact />} />
           <Route path="/booking" element={<Booking />} />
+          <Route path="/faq" element={<Faq/>} />
         </Routes>
         <Footer />
       </div>

@@ -97,6 +97,7 @@ const TryOn = () => {
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
+    console.log(ctx);
 
     // Clear canvas and draw video frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -122,6 +123,7 @@ const TryOn = () => {
             // Calculate position
             const x = tipPoint.x * canvas.width;
             const y = tipPoint.y * canvas.height;
+            console.log(`Nail position: (${x}, ${y})`);
 
             // Calculate nail width based on finger width
             const fingerWidth = Math.hypot(
@@ -136,9 +138,11 @@ const TryOn = () => {
               tipPoint.y - basePoint.y,
               tipPoint.x - basePoint.x
             );
+            console.log(`Rotation angle: ${angle}`);
 
             const nailImg = new Image();
             nailImg.onload = () => {
+              console.log('Nail image loaded');
               ctx.save();
               ctx.translate(x, y);
               ctx.rotate(angle - Math.PI/2);

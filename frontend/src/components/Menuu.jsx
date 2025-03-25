@@ -4,28 +4,28 @@ import { assets } from "../assets/assets";
 const Menuu = () => {
   const services = [
     {
-      name: "Dry Manicure",
-      price: "₹130",
-      description: "A quick, no-water manicure for perfectly polished nails.",
+      name: "Manicure",
+      price: "₹300",
+      description: "A quick manicure for perfectly polished nails.",
     },
     {
-      name: "Dry Pedicure",
-      price: "₹150",
+      name: "Pedicure",
+      price: "₹350",
       description: "A waterless pedicure for smooth and healthy feet.",
     },
     {
       name: "Acrylic Extensions",
-      price: "₹1000",
+      price: "₹800",
       description: "Add durable length with acrylic extensions.",
     },
     {
       name: "Gel Extensions",
-      price: "₹1000",
+      price: "₹800",
       description: "Add length and style with flawless gel extensions.",
     },
     {
       name: "Advance Manicure",
-      price: "₹350",
+      price: "₹450",
       description: "Achieve perfection with an Advance manicure.",
     },
     {

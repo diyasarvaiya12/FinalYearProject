@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 
-export const sendOrderConfirmationEmail = async (userEmail, address, items, amount) => {
+export const sendOrderConfirmationEmail = async (userEmail, address, items, amount, orderid) => {
     try {
         const transporter = nodemailer.createTransport({
             service: 'Gmail',
@@ -14,7 +14,7 @@ export const sendOrderConfirmationEmail = async (userEmail, address, items, amou
         const mailOptions = {
             from: 'The Nail Story <thenailsstory1@gmail.com>',
             to: userEmail,
-            subject: 'Order Confirmation - The Nail Story',
+            subject: `Order Confirmation - #${orderid} - The Nail Story`,
             html: `
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #FDF6E6; border-radius: 10px; overflow: hidden;">
                     <div style="background-color: #FDF6E6; color: #053342; padding: 15px; text-align: center;">
@@ -22,7 +22,9 @@ export const sendOrderConfirmationEmail = async (userEmail, address, items, amou
                     </div>
                     <div style="padding: 20px; background-color: #fff;">
                         <p>Your order has been successfully placed. Below are your order details:</p>
+
                         <h3 style="border-bottom: 2px solid #053342; padding-bottom: 5px;">Order Details:</h3>
+                        <p><strong>Order ID:</strong> ${orderid}</p>
                         <ul style="list-style: none; padding: 0;">
                             ${items.map(item => `
                                 <li style="background-color: #FDF6E6; margin: 5px 0; padding: 8px 12px; border-radius: 5px;">
@@ -33,10 +35,10 @@ export const sendOrderConfirmationEmail = async (userEmail, address, items, amou
                         <p style="font-weight: bold; font-size: 18px;">Total Amount: ₹${amount}</p>
 
                         <h3 style="border-bottom: 2px solid #053342; padding-bottom: 5px;">Shipping Details:</h3>
-                        <p #053342>${address.firstName} ${address.lastName}</p>
-                        <p #053342>${address.street}, ${address.city}, ${address.state} - ${address.zipcode}</p>
-                        <p #053342>${address.country}</p>
-                        <p #053342><strong>Contact:</strong> ${address.phone}</p>
+                        <p>${address.firstName} ${address.lastName}</p>
+                        <p>${address.street}, ${address.city}, ${address.state} - ${address.zipcode}</p>
+                        <p>${address.country}</p>
+                        <p><strong>Contact:</strong> ${address.phone}</p>
 
                         <p style="margin-top: 20px;">We will notify you once your order is shipped. Thank you for choosing <strong>The Nail Story</strong>! 💅</p>
                     </div>

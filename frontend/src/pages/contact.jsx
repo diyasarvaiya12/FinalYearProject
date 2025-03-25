@@ -18,67 +18,88 @@ const Contact = () => {
       .bindPopup('Patel Nagar, Kandivali (W), Mumbai-67')
       .openPopup();
 
-    map.on('click', () => {
+    const openGoogleMaps = () => {
       window.open(
         'https://www.google.com/maps/place/Patel+Nagar,+Kandivali+West,+Mumbai,+Maharashtra+400067',
         '_blank'
       );
-    });
+    };
 
-    marker.on('click', () => {
-      window.open(
-        'https://www.google.com/maps/place/Patel+Nagar,+Kandivali+West,+Mumbai,+Maharashtra+400067',
-        '_blank'
-      );
-    });
+    map.on('click', openGoogleMaps);
+    marker.on('click', openGoogleMaps);
+
+    return () => {
+      map.remove(); // Cleanup to prevent map duplication
+    };
   }, []);
 
-  const sendEmail = (e) => {
+  const sendEmail = async (e) => {
     e.preventDefault();
 
-    emailjs.sendForm(
-      'service_cp42q49', // Replace with your Service ID
-      'template_evmsdtr', // Replace with your Template ID
-      e.target,
-      'TLJwtklx_u64hrDpa' // Replace with your Public Key
-    ).then((result) => {
+    try {
+      const result = await emailjs.sendForm(
+        'service_gazh2z5',
+        'template_evmsdtr',
+        e.target,
+        'mXUP4z9aGcOg78jzL'
+      );
       alert('Message sent successfully!');
       console.log(result.text);
-    }).catch((error) => {
+    } catch (error) {
       alert('Failed to send message. Please try again.');
       console.error(error.text);
-    });
+    }
 
-    e.target.reset(); // Clear form after submission
+    e.target.reset();
   };
 
   return (
     <div className="min-h-screen">
       <div className="bg-white p-8">
-        <h2 className="text-4xl font-serif text-[#053342] mb-8 text-center">~Contact Information~</h2>
+        <h2 className="text-4xl font-serif text-[#053342] mb-8 text-center">
+          ~Contact Information~
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
           <div className="bg-[#FDF6E6] p-6">
-            <img src={assets.location} alt="Location" className="w-12 h-12 mx-auto mb-4" />
+            <img
+              src={assets.location}
+              alt="Location"
+              className="w-12 h-12 mx-auto mb-4"
+            />
             <h3 className="text-xl font-semibold text-[#053342]">Location</h3>
-            <p className="text-gray-700">Patel Nagar, Kandivali (W), Mumbai-67</p>
+            <p className="text-gray-700">
+              Patel Nagar, Kandivali (W), Mumbai-67
+            </p>
           </div>
 
-          <a 
-            href="https://wa.me/918104586086?text=Hi%20there!%20I'm%20interested%20in%20your%20nail%20art%20services.%20Can%20you%20provide%20more%20details?" 
-            target="_blank" 
+          <a
+            href="https://wa.me/918104586086?text=Hi%20there!%20I'm%20interested%20in%20your%20nail%20art%20services.%20Can%20you%20provide%20more%20details?"
+            target="_blank"
             rel="noopener noreferrer"
           >
             <div className="bg-[#FDF6E6] p-6 cursor-pointer">
-              <img src={assets.whatsapp} alt="chat with us" className="w-15 h-12 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-[#053342]">chat with us</h3>
+              <img
+                src={assets.whatsapp}
+                alt="chat with us"
+                className="w-15 h-12 mx-auto mb-4"
+              />
+              <h3 className="text-xl font-semibold text-[#053342]">
+                Chat with us
+              </h3>
               <p className="text-gray-700">+91 8433646811</p>
             </div>
           </a>
 
           <div className="bg-[#FDF6E6] p-6">
-            <img src={assets.message} alt="Message" className="w-16 h-12 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-[#053342]">Send Us A Message</h3>
+            <img
+              src={assets.message}
+              alt="Message"
+              className="w-16 h-12 mx-auto mb-4"
+            />
+            <h3 className="text-xl font-semibold text-[#053342]">
+              Send Us A Message
+            </h3>
             <p className="text-gray-700">thenailsstory1@gmail.com</p>
           </div>
         </div>
@@ -88,31 +109,45 @@ const Contact = () => {
       <div className="bg-[#FDF6E6] p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
           <div>
-            <h2 className="text-4xl font-serif text-[#053342] text-gray-800">Get in touch!</h2>
+            <h2 className="text-4xl font-serif text-[#053342] text-gray-800">
+              Get in touch!
+            </h2>
             <p className="text-gray-700 mt-4 mb-8">
-              Stay glam, stay in touch! We're just a message away from your dream nails.
+              Stay glam, stay in touch! We're just a message away from your
+              dream nails.
             </p>
 
-            <div id="leaflet-map" className="w-full h-64 overflow-hidden cursor-pointer"></div>
+            <div
+              id="leaflet-map"
+              className="w-full h-64 overflow-hidden cursor-pointer"
+            ></div>
 
             <p className="text-gray-700 mt-4">
               Social Media:
               <span className="inline-block ml-4">
-                <a 
-                  href="https://wa.me/918104586086?text=Hi%20there!%20I'm%20interested%20in%20your%20nail%20art%20services.%20Can%20you%20provide%20more%20details?" 
-                  target="_blank" 
+                <a
+                  href="https://wa.me/918104586086?text=Hi%20there!%20I'm%20interested%20in%20your%20nail%20art%20services.%20Can%20you%20provide%20more%20details?"
+                  target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <img src={assets.whatsapp} alt="WhatsApp" className="w-8 h-8 inline-block" />
+                  <img
+                    src={assets.whatsapp}
+                    alt="WhatsApp"
+                    className="w-8 h-8 inline-block"
+                  />
                 </a>
               </span>
               <span className="inline-block ml-4">
-                <a 
+                <a
                   href="https://www.instagram.com/the_nail_story____/"
-                  target="_blank" 
+                  target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <img src={assets.instagram} alt="Instagram" className="w-8 h-8 inline-block" />
+                  <img
+                    src={assets.instagram}
+                    alt="Instagram"
+                    className="w-8 h-8 inline-block"
+                  />
                 </a>
               </span>
             </p>

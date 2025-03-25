@@ -8,6 +8,8 @@ import tryOnRoutes from './routes/tryOnRoutes.js';
 import productRouter from './routes/productRoute.js';
 import cartRouter from './routes/cartRoutes.js';
 import orderRouter from './routes/orderRoute.js';
+import chatbotRoutes from './routes/chatbotRoutes.js';
+import bookingRoute from './routes/bookingRoute.js';
 
 dotenv.config(); // Load environment variables
 
@@ -29,6 +31,8 @@ app.use('/api/products', productRouter);
 app.use('/api/tryon', tryOnRoutes);  
 app.use('/api/cart', cartRouter);
 app.use('/api/order',orderRouter);
+app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/bookings', bookingRoute);
 
 // Default Route
 app.get('/', (req, res) => {

@@ -57,6 +57,11 @@ const Footer = () => {
                 Contact
               </button>
             </li>
+            <li>
+              <button onClick={() => handleNavigate("/faq")} className="hover:text-[#B0754B] transition-colors">
+                FAQ
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -66,7 +71,7 @@ const Footer = () => {
           <ul className="flex flex-col gap-1 text-gray-600">
             <li>
               <a href="tel:+911234567890" className="hover:text-[#B0754B] transition-colors">
-                +91 1234567890
+                +91 8433646811
               </a>
             </li>
             <li>
