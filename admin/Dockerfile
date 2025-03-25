@@ -1,22 +1,10 @@
-# Build React app
 FROM node:18-alpine AS build
-
 WORKDIR /app
-
-COPY package.json package-lock.json ./
-
-RUN npm install --only=production
-
-COPY . .
-
+COPY package.json ./
+RUN npm install --legacy-peer-deps
+COPY . . 
 RUN npm run build
 
-# Serve with Nginx
-FROM nginx:alpine
-
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY --from=build /app/dist /usr/share/nginx/html
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 5174
+# Serve the built frontend
+CMD ["npx", "serve", "-s", "dist", "-l", "5174"]

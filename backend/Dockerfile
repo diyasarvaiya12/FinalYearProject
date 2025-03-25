@@ -1,18 +1,21 @@
-# Use lightweight Node.js
+# Use lightweight Node.js image
 FROM node:18-alpine
 
+# Set working directory
 WORKDIR /app
 
+# Copy package files first (better caching)
 COPY package.json package-lock.json ./
 
-RUN npm install --only=production
+# Install dependencies
+RUN npm install --omit=dev
 
-# Install PM2 globally
-RUN npm install -g pm2
-
+# Copy rest of the application
 COPY . .
 
+# Expose backend port
 EXPOSE 4000
 
-# Start backend with PM2
-CMD ["pm2-runtime", "start", "server.js", "--name", "backend"]
+# Install PM2 globally & start server
+RUN npm install -g pm2
+CMD ["pm2-runtime", "server.js"]

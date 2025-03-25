@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   backend:
     build: ./backend
@@ -6,47 +5,58 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=production
-      - MONGO_URL=mongodb://mongo:27017/finalyearproject
+      - MONGO_URL=mongodb://localhost:27017
+      - CLOUDINARY_API_KEY= "358538845983824"
+      - CLOUDINARY_SECRET_KEY= "pve4BNWFpkYaZK6_tSos4qpDauE"
+      - CLOUDINARY_NAME ="dkofrrztr"
+      - 
+      - TWILIO_ACCOUNT_SID="ACcd3af0a207a3126feab61826cca8c863"
+      - TWILIO_AUTH_TOKEN="b058b3d7edaaa403364f1ed913557358"
+      - TWILIO_PHONE_NUMBER="8433646811"
+      - 
+      - JWT_SECRET="diyahastikeval"
+      - 
+      - ADMIN_EMAIL = "diya@gmail.com"
+      - ADMIN_PASSWORD = "pass123"
+      - 
+      - STRIPE_SECRET_KEY="pk_test_51BTUDGJAJfZb9HEBwDg86TN1KNprHjkfipXmEDMb0gSCassK5T3ZfxsAbcgKVmAIXF7oZ6ItlZZbXO6idTHE67IM007EwQ4uN3"
+      - 
+      - RAZORPAY_KEY_ID="rzp_test_XCs0E3IXY05Ek0"
+      - RAZORPAY_KEY_SECRET="bWksCJEyqYy0UIZzXFqNtLDB"
+      - 
+      - STRIPE_SECRET_KEY="sk_test_51Mqs7uCmA4bPQGkVojvYpJ3Yfh3QQy5eEciAD3hyk6nVoNwI8HLYQW2TwY9XWSFEGx7VwE7u6z76mroMQyPpMls00OU5fRQvQ"
+      - STRIPE_PUBLISHABLE_KEY="pk_test_51Mqs7uCmA4bPQGkVQ5yK12EK7pTmPVxSMwYZWT1TKxYcWgGnbCw3Jm16Hsw9uKFOAEINtFdY5b10K9b6ps9D5f5M00Yzlw4qCr"
+      - FRONTEND_URL="http://localhost:5173"
+
     depends_on:
       - mongo
 
   frontend:
     build: ./frontend
+    ports:
+      - "5173:5173"
     depends_on:
       - backend
 
   admin:
     build: ./admin
-    depends_on:
-      - backend
-
-  nginx:
-    image: nginx:alpine
     ports:
-      - "80:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - "5174:5174"
     depends_on:
-      - frontend
-      - admin
       - backend
 
   mongo:
     image: mongo:6.0
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-
-  mongo-express:
-    image: mongo-express
     restart: always
     ports:
-      - "8081:8081"
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=root
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=example
-      - ME_CONFIG_MONGODB_URL=mongodb://mongo:27017/
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mongo-data:/data/db
 
 volumes:
   mongo-data:
