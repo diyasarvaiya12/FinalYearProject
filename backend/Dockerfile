@@ -1,14 +1,14 @@
-# Use lightweight Node.js image
+# Use Node.js LTS
 FROM node:18-alpine
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files first (better caching)
-COPY package.json package-lock.json ./
+# Copy package files
+COPY package*.json ./
 
 # Install dependencies
-RUN npm install --omit=dev
+RUN npm install
 
 # Copy rest of the application
 COPY . .
@@ -16,6 +16,5 @@ COPY . .
 # Expose backend port
 EXPOSE 4000
 
-# Install PM2 globally & start server
-RUN npm install -g pm2
-CMD ["pm2-runtime", "server.js"]
+# Start the server
+CMD ["node", "--experimental-modules", "server.js"]

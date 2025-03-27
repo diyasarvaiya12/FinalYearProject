@@ -5,48 +5,36 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=production
-      - MONGO_URL=mongodb://localhost:27017
+      - MONGO_URL=mongodb://mongo:27017
       - CLOUDINARY_API_KEY= "358538845983824"
       - CLOUDINARY_SECRET_KEY= "pve4BNWFpkYaZK6_tSos4qpDauE"
       - CLOUDINARY_NAME ="dkofrrztr"
-      - 
       - TWILIO_ACCOUNT_SID="ACcd3af0a207a3126feab61826cca8c863"
       - TWILIO_AUTH_TOKEN="b058b3d7edaaa403364f1ed913557358"
       - TWILIO_PHONE_NUMBER="8433646811"
-      - 
       - JWT_SECRET="diyahastikeval"
-      - 
       - ADMIN_EMAIL = "diya@gmail.com"
       - ADMIN_PASSWORD = "pass123"
-      - 
       - STRIPE_SECRET_KEY="pk_test_51BTUDGJAJfZb9HEBwDg86TN1KNprHjkfipXmEDMb0gSCassK5T3ZfxsAbcgKVmAIXF7oZ6ItlZZbXO6idTHE67IM007EwQ4uN3"
-      - 
       - RAZORPAY_KEY_ID="rzp_test_XCs0E3IXY05Ek0"
       - RAZORPAY_KEY_SECRET="bWksCJEyqYy0UIZzXFqNtLDB"
-      - 
       - STRIPE_SECRET_KEY="sk_test_51Mqs7uCmA4bPQGkVojvYpJ3Yfh3QQy5eEciAD3hyk6nVoNwI8HLYQW2TwY9XWSFEGx7VwE7u6z76mroMQyPpMls00OU5fRQvQ"
       - STRIPE_PUBLISHABLE_KEY="pk_test_51Mqs7uCmA4bPQGkVQ5yK12EK7pTmPVxSMwYZWT1TKxYcWgGnbCw3Jm16Hsw9uKFOAEINtFdY5b10K9b6ps9D5f5M00Yzlw4qCr"
       - FRONTEND_URL="http://localhost:5173"
-
-    depends_on:
-      - mongo
 
   frontend:
     build: ./frontend
     ports:
       - "5173:5173"
-    depends_on:
-      - backend
 
   admin:
     build: ./admin
     ports:
       - "5174:5174"
-    depends_on:
-      - backend
 
   mongo:
-    image: mongo:6.0
+    image: mongo:6
+    container_name: mongo
     restart: always
     ports:
       - "27017:27017"

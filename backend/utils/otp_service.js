@@ -1,7 +1,7 @@
 import twilio from "twilio";
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID || "ACcd3af0a207a3126feab61826cca8c863" ;
-const authToken = process.env.TWILIO_AUTH_TOKEN || "b058b3d7edaaa403364f1ed913557358";
+const authToken = "da8a47755552550546d268539c178111";
+const accountSid = "ACcd3af0a207a3126feab61826cca8c863" ;
 const client = twilio(accountSid, authToken);
 
 async function createService() {

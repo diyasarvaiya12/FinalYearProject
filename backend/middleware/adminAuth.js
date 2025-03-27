@@ -14,7 +14,7 @@ const adminAuth = async (req, res, next) => {
             return res.status(401).json({ success: false, message: "No token provided" });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || "diyahastikeval");  // 🔒 Uses environment variable
+        const decoded = jwt.verify(token, "diyahastikeval");  // 🔒 Uses environment variable
 
         console.log("Decoded Token:", decoded);
 
