@@ -4,6 +4,16 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useAuth } from '../context/AuthContext';
 
+import FlowingMenu from '../components/FlowingMenu';
+
+const demoItems = [
+    { link: '#https://www.instagram.com/the_nail_story____/', text: 'Your Nails,Your Canvas!', image: 'https://www.instagram.com/the_nail_story____/' },
+    { link: '#https://www.instagram.com/the_nail_story____/', text: 'Pamper Your Nails!', image: 'https://www.instagram.com/the_nail_story____/' },
+    { link: '#https://www.instagram.com/the_nail_story____/', text: 'Bold & Beautiful Nails!', image: 'https://www.instagram.com/the_nail_story____/' },
+    { link: '#https://www.instagram.com/the_nail_story____/', text: 'Flaunt Perfect Nails!', image: 'https://www.instagram.com/the_nail_story____/' }
+  ];
+  
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
 const Login = () => {
@@ -71,8 +81,8 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <div className="min-h-screen flex items-center justify-center flex-col">
+            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md mb-6">
                 <h2 className="text-3xl font-serif text-center text-[#053342] mb-6">
                     {isLogin ? 'Login' : 'Sign Up'}
                 </h2>
@@ -139,6 +149,11 @@ const Login = () => {
                         {isLogin ? 'Sign Up' : 'Login'}
                     </button>
                 </p>
+            </div>
+
+            {/* FlowingMenu below login */}
+            <div className="w-full mt-6">
+                <FlowingMenu items={demoItems} />
             </div>
         </div>
     );

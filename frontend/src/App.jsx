@@ -19,6 +19,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Faq from './pages/FAQ';
+import BookingSuccess from "./pages/booking-success";
+import BookingLimit from "./pages/BookingLimit";  
 
 const App = () => {
   return (
@@ -54,6 +56,8 @@ const App = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/booking" element={<Booking />} />
           <Route path="/faq" element={<Faq/>} />
+          <Route path="/booking-success" element={<BookingSuccess/>} />
+          <Route path="/boking-limit" element={<BookingLimit/>} />
         </Routes>
         <Footer />
       </div>

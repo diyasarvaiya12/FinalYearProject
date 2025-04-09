@@ -18,7 +18,6 @@ const TryOn = () => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
           }
         });
-
         hands.setOptions({
           maxNumHands: 2,
           modelComplexity: 1,
@@ -97,7 +96,6 @@ const TryOn = () => {
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    console.log(ctx);
 
     // Clear canvas and draw video frame
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -105,44 +103,45 @@ const TryOn = () => {
 
     if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
       results.multiHandLandmarks.forEach((landmarks) => {
-        // Updated fingertip indices and their base points
         const fingerTips = [
-          { tip: 4, base: 3 },  // thumb
-          { tip: 8, base: 7 },  // index
-          { tip: 12, base: 11 }, // middle
-          { tip: 16, base: 15 }, // ring
-          { tip: 20, base: 19 }  // pinky
+          { tip: 4, base: 3, type: 'thumb' },
+          { tip: 8, base: 7, type: 'index' },
+          { tip: 12, base: 11, type: 'middle' },
+          { tip: 16, base: 15, type: 'ring' },
+          { tip: 20, base: 19, type: 'pinky' }
         ];
         
         if (selectedNail) {
-          console.log(selectedNail);
-          fingerTips.forEach(({ tip, base }) => {
-            const tipPoint = landmarks[tip];
-            const basePoint = landmarks[base];
-            
-            // Calculate position
-            const x = tipPoint.x * canvas.width;
-            const y = tipPoint.y * canvas.height;
-            console.log(`Nail position: (${x}, ${y})`);
+          // Load a single nail image first for testing
+          const nailImg = new Image();
+          nailImg.crossOrigin = "anonymous";
+          
+          nailImg.onload = () => {
+            fingerTips.forEach(({ tip, base }) => {
+              const tipPoint = landmarks[tip];
+              const basePoint = landmarks[base];
+              
+              // Calculate position
+              const x = tipPoint.x * canvas.width;
+              const y = tipPoint.y * canvas.height;
 
-            // Calculate nail width based on finger width
-            const fingerWidth = Math.hypot(
-              (landmarks[tip].x - landmarks[base].x) * canvas.width,
-              (landmarks[tip].y - landmarks[base].y) * canvas.height
-            );
-            const nailWidth = fingerWidth * 1.2;
-            const nailHeight = nailWidth * 0.8;
+              // Calculate nail width based on finger width
+              const fingerWidth = Math.hypot(
+                (tipPoint.x - basePoint.x) * canvas.width,
+                (tipPoint.y - basePoint.y) * canvas.height
+              );
+              
+              // Adjust these values to better fit your nails
+              const nailWidth = fingerWidth * 1.5;  // Increased from 1.2
+              const nailHeight = nailWidth * 1.0;   // Increased from 0.8
 
-            // Calculate angle
-            const angle = Math.atan2(
-              tipPoint.y - basePoint.y,
-              tipPoint.x - basePoint.x
-            );
-            console.log(`Rotation angle: ${angle}`);
+              // Calculate angle
+              const angle = Math.atan2(
+                tipPoint.y - basePoint.y,
+                tipPoint.x - basePoint.x
+              );
 
-            const nailImg = new Image();
-            nailImg.onload = () => {
-              console.log('Nail image loaded');
+              // Draw the nail
               ctx.save();
               ctx.translate(x, y);
               ctx.rotate(angle - Math.PI/2);
@@ -154,44 +153,57 @@ const TryOn = () => {
                 nailHeight
               );
               ctx.restore();
-            };
-            nailImg.src = selectedNail;
-          });
+            });
+          };
+          
+
+          // Add error handling
+          nailImg.onerror = (err) => {
+            console.error('Error loading nail image:', err);
+          };
+
+          nailImg.src = selectedNail;
         }
 
-        // Draw debug points if needed
-        if (process.env.NODE_ENV === 'development') {
-          landmarks.forEach((landmark, index) => {
-            ctx.beginPath();
-            ctx.arc(
-              landmark.x * canvas.width,
-              landmark.y * canvas.height,
-              2,
-              0,
-              2 * Math.PI
-            );
-            ctx.fillStyle = '#00FF00';
-            ctx.fill();
-          });
-        }
+        // Draw debug points
+        landmarks.forEach((landmark) => {
+          ctx.beginPath();
+          ctx.arc(
+            landmark.x * canvas.width,
+            landmark.y * canvas.height,
+            2,
+            0,
+            2 * Math.PI
+          );
+          ctx.fillStyle = '#00FF00';
+          ctx.fill();
+        });
       });
     }
   };
 
-  // Nail design options
+  // Update nailDesigns to ensure the image paths are correct
   const nailDesigns = [
     {
       id: 1,
-      src: "/images/nails/floral-burgundy.png",
+      src: "/floral-burgundy.png", // Make sure this matches your public folder image name
       name: "Classic French",
       price: "₹299",
       description: "Classic white-tipped French manicure"
+      
     },
     {
       id: 2,
       src: "/images/nails/design2.png",
       name: "Glitter Gold",
-      price: "₹399"
+      price: "₹399",
+      fingerNails: {
+        thumb: "/thumb2.png",
+        index: "/index2.png",
+        middle: "/middle2.png",
+        ring: "/ring2.png",
+        pinky: "/pinky2.png"
+      }
     },
     {
       id: 3,
@@ -280,7 +292,6 @@ const TryOn = () => {
               </div>
             </div>
           </div>
-
           {/* Nail Designs Selection */}
           <div className="lg:w-1/3">
             <h2 className="text-2xl font-serif text-[#053342] mb-4">
@@ -316,7 +327,6 @@ const TryOn = () => {
                 </button>
               ))}
             </div>
-
             <div className="mt-6 p-4 bg-[#FDF6E6] rounded-lg">
               <h3 className="text-lg font-medium text-[#053342] mb-2">
                 How to Use:
@@ -330,7 +340,6 @@ const TryOn = () => {
             </div>
           </div>
         </div>
-
         {isProcessing && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-lg">
@@ -343,5 +352,4 @@ const TryOn = () => {
     </div>
   );
 };
-
 export default TryOn;
