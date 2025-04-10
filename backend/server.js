@@ -10,10 +10,12 @@ import cartRouter from './routes/cartRoutes.js';
 import orderRouter from './routes/orderRoute.js';
 import chatbotRoutes from './routes/chatbotRoutes.js';
 import bookingRoute from './routes/bookingRoute.js';
+import appointmentRouter from './routes/appointmentRoute.js';
 
 import { oauth2Client } from "./middleware/googleAuth.js";
 import { calendar } from "./utils/calendarServices.js";
 import Appointment from './models/appointmentModel.js';
+import moment from 'moment-timezone';
 
 dotenv.config(); // Load environment variables
 
@@ -37,7 +39,7 @@ app.use('/api/cart', cartRouter);
 app.use('/api/order',orderRouter);
 app.use('/api/chatbot', chatbotRoutes);
 // app.use('/api/bookings', bookingRoute);
-
+app.use('/api/appointments', appointmentRouter);
 
 // Generate OAuth URL for Google authentication
 app.get("/auth-url", (req, res) => {
@@ -88,7 +90,7 @@ app.get("/oauth2callback", async (req, res) => {
       return res.redirect(`http://localhost:5173/booking-limit`);
     }
 
-    // Create appointment in MongoDB
+    // Create appointment in MongoDB with more details
     const appointment = new Appointment({
       name,
       email,
@@ -96,28 +98,14 @@ app.get("/oauth2callback", async (req, res) => {
       time,
       services,
       estimatedPrice: totalPrice,
+      status: 'Confirmed'
     });
 
     await appointment.save();
 
-    const [year, month, day] = date.split("-");
-    const [hourMin, ampm] = time.split(" ");
-    const [hour, minute] = hourMin.split(":");
-
-    // Convert 12-hour to 24-hour format
-    let eventHour = parseInt(hour);
-    if (ampm === "PM" && eventHour < 12) eventHour += 12;
-    if (ampm === "AM" && eventHour === 12) eventHour = 0;
-
-    const startDateTime = new Date(
-      year,
-      month - 1,
-      day,
-      eventHour,
-      parseInt(minute)
-    );
-    const endDateTime = new Date(startDateTime);
-    endDateTime.setHours(endDateTime.getHours() + 1);
+    // Fix timezone issue by using moment-timezone
+    const startTime = moment.tz(`${date} ${time}`, "YYYY-MM-DD hh:mm A", "Asia/Kolkata");
+    const endTime = moment(startTime).add(1, 'hours');
 
     // Create calendar event
     const event = {
@@ -125,11 +113,11 @@ app.get("/oauth2callback", async (req, res) => {
       location: "NailStory Salon",
       description: `Services:\n${servicesText}\n\nTotal: ₹${totalPrice}`,
       start: {
-        dateTime: startDateTime.toISOString(),
+        dateTime: startTime.format(),
         timeZone: "Asia/Kolkata",
       },
       end: {
-        dateTime: endDateTime.toISOString(),
+        dateTime: endTime.format(),
         timeZone: "Asia/Kolkata",
       },
       attendees: [{ email }],

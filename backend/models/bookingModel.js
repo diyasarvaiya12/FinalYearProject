@@ -1,7 +1,5 @@
-import React from 'react'
-
 const bookingModel = () => {
-
+return null
 }
 
 export default bookingModel
