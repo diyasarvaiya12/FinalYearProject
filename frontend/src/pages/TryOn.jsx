@@ -1,200 +1,29 @@
-import React, { useRef, useState, useEffect } from "react";
+import { useRef, useEffect, useState, useCallback } from 'react';
+import Webcam from 'react-webcam';
+import { Camera } from '@mediapipe/camera_utils';
+import { Hands } from '@mediapipe/hands';
 
 const TryOn = () => {
-  const videoRef = useRef(null);
+  const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const [selectedNail, setSelectedNail] = useState(null);
+  const [nailImage, setNailImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
-  const [hands, setHands] = useState(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
 
-  // Initialize MediaPipe Hands and Camera
-  useEffect(() => {
-    const initializeHandDetection = async () => {
-      try {
-        const hands = new window.Hands({
-          locateFile: (file) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-          }
-        });
-        hands.setOptions({
-          maxNumHands: 2,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5
-        });
-
-        hands.onResults(onResults);
-        setHands(hands);
-      } catch (err) {
-        setError("Failed to initialize hand detection");
-      }
-    };
-
-    initializeHandDetection();
-  }, []);
-
-  // Handle camera
-  useEffect(() => {
-    if (isCameraActive) {
-      startCamera();
-    } else {
-      stopCamera();
-    }
-  }, [isCameraActive]);
-
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: 640,
-          height: 480,
-          facingMode: "environment"
-        }
-      });
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-
-        // Set canvas size to match video
-        canvasRef.current.width = videoRef.current.videoWidth;
-        canvasRef.current.height = videoRef.current.videoHeight;
-
-        // Start detection loop
-        requestAnimationFrame(detectFrame);
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      setError("Unable to access camera. Please ensure camera permissions are granted.");
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-  };
-
-  const detectFrame = async () => {
-    if (!hands || !videoRef.current || !isCameraActive) return;
-
-    try {
-      await hands.send({ image: videoRef.current });
-      if (isCameraActive) {
-        requestAnimationFrame(detectFrame);
-      }
-    } catch (err) {
-      console.error('Frame detection error:', err);
-    }
-  };
-
-  const onResults = (results) => {
-    if (!canvasRef.current) return;
-
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-
-    // Clear canvas and draw video frame
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
-    if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-      results.multiHandLandmarks.forEach((landmarks) => {
-        const fingerTips = [
-          { tip: 4, base: 3, type: 'thumb' },
-          { tip: 8, base: 7, type: 'index' },
-          { tip: 12, base: 11, type: 'middle' },
-          { tip: 16, base: 15, type: 'ring' },
-          { tip: 20, base: 19, type: 'pinky' }
-        ];
-        
-        if (selectedNail) {
-          // Load a single nail image first for testing
-          const nailImg = new Image();
-          nailImg.crossOrigin = "anonymous";
-          
-          nailImg.onload = () => {
-            fingerTips.forEach(({ tip, base }) => {
-              const tipPoint = landmarks[tip];
-              const basePoint = landmarks[base];
-              
-              // Calculate position
-              const x = tipPoint.x * canvas.width;
-              const y = tipPoint.y * canvas.height;
-
-              // Calculate nail width based on finger width
-              const fingerWidth = Math.hypot(
-                (tipPoint.x - basePoint.x) * canvas.width,
-                (tipPoint.y - basePoint.y) * canvas.height
-              );
-              
-              // Adjust these values to better fit your nails
-              const nailWidth = fingerWidth * 1.5;  // Increased from 1.2
-              const nailHeight = nailWidth * 1.0;   // Increased from 0.8
-
-              // Calculate angle
-              const angle = Math.atan2(
-                tipPoint.y - basePoint.y,
-                tipPoint.x - basePoint.x
-              );
-
-              // Draw the nail
-              ctx.save();
-              ctx.translate(x, y);
-              ctx.rotate(angle - Math.PI/2);
-              ctx.drawImage(
-                nailImg,
-                -nailWidth/2,
-                -nailHeight/2,
-                nailWidth,
-                nailHeight
-              );
-              ctx.restore();
-            });
-          };
-          
-
-          // Add error handling
-          nailImg.onerror = (err) => {
-            console.error('Error loading nail image:', err);
-          };
-
-          nailImg.src = selectedNail;
-        }
-
-        // Draw debug points
-        landmarks.forEach((landmark) => {
-          ctx.beginPath();
-          ctx.arc(
-            landmark.x * canvas.width,
-            landmark.y * canvas.height,
-            2,
-            0,
-            2 * Math.PI
-          );
-          ctx.fillStyle = '#00FF00';
-          ctx.fill();
-        });
-      });
-    }
-  };
-
-  // Update nailDesigns to ensure the image paths are correct
+  // Nail designs array
   const nailDesigns = [
     {
       id: 1,
-      src: "/floral-burgundy.png", // Make sure this matches your public folder image name
+      src: "/nail.png",
       name: "Classic French",
       price: "₹299",
       description: "Classic white-tipped French manicure"
-      
     },
     {
       id: 2,
-      src: "/images/nails/design2.png",
+      src: "/nail.png",
       name: "Glitter Gold",
       price: "₹399",
       fingerNails: {
@@ -207,51 +36,126 @@ const TryOn = () => {
     },
     {
       id: 3,
-      src: "/images/nails/design3.png",
+      src: "/nail.png",
       name: "Rose Pink",
       price: "₹349"
     },
     {
       id: 4,
-      src: "/images/nails/design4.png",
+      src: "/nail.png",
       name: "Abstract Art",
       price: "₹449"
     }
   ];
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = canvasRef.current;
-            
-            // Set canvas size to match image dimensions
-            canvas.width = img.width;
-            canvas.height = img.height;
-            
-            setSelectedNail(img.src);
-            detectAndApplyNails(img);
-          };
-          img.src = event.target.result;
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setError("Please upload an image file");
+  // Load the selected nail image
+  useEffect(() => {
+    if (selectedNail) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = selectedNail;
+      img.onload = () => setNailImage(img);
+      img.onerror = (err) => {
+        console.error('Error loading nail image:', err);
+        setError("Failed to load nail design");
+      };
+    }
+  }, [selectedNail]);
+
+  // Memoized onResults function
+  const onResults = useCallback((results) => {
+    if (!canvasRef.current || !nailImage) return;
+
+    const canvasCtx = canvasRef.current.getContext('2d');
+    canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    if (results.multiHandLandmarks) {
+      for (const landmarks of results.multiHandLandmarks) {
+        const fingertips = [4, 8, 12, 16, 20]; // Thumb, index, middle, ring, pinky
+
+        fingertips.forEach((tipIndex) => {
+          const fingertip = landmarks[tipIndex];
+          const previousPoint = landmarks[tipIndex - 1];
+
+          // Calculate angle and position
+          const angle = Math.atan2(
+            fingertip.y - previousPoint.y,
+            fingertip.x - previousPoint.x
+          );
+
+          const distance = Math.sqrt(
+            Math.pow(fingertip.x - previousPoint.x, 2) +
+            Math.pow(fingertip.y - previousPoint.y, 2)
+          );
+
+          // Adjust nail size
+          const nailWidth = distance * canvasRef.current.width * 1.2;
+          const nailHeight = nailWidth * (153 / 83);
+
+          const x = fingertip.x * canvasRef.current.width;
+          const y = fingertip.y * canvasRef.current.height;
+
+          // Draw nail
+          canvasCtx.save();
+          canvasCtx.translate(x, y);
+          canvasCtx.rotate(angle - Math.PI/2);
+          canvasCtx.drawImage(
+            nailImage,
+            -nailWidth/2,
+            -nailHeight/2,
+            nailWidth,
+            nailHeight
+          );
+          canvasCtx.restore();
+        });
       }
     }
-  };
+  }, [nailImage]);
 
-  const downloadImage = () => {
-    const canvas = canvasRef.current;
-    const link = document.createElement('a');
-    link.download = 'nail-preview.png';
-    link.href = canvas.toDataURL();
-    link.click();
-  };
+  // Initialize hands detection
+  useEffect(() => {
+    if (!isCameraActive) return;
+
+    setIsProcessing(true);
+    const hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`,
+    });
+
+    hands.setOptions({
+      maxNumHands: 2,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5,
+    });
+
+    hands.onResults(onResults);
+
+    if (webcamRef.current?.video) {
+      const camera = new Camera(webcamRef.current.video, {
+        onFrame: async () => {
+          try {
+            await hands.send({ image: webcamRef.current.video });
+          } catch (err) {
+            console.error('Frame processing error:', err);
+          }
+        },
+        width: 640,
+        height: 480,
+      });
+
+      camera.start()
+        .then(() => setIsProcessing(false))
+        .catch((err) => {
+          console.error('Camera start error:', err);
+          setError("Failed to start camera");
+          setIsProcessing(false);
+        });
+    }
+
+    return () => {
+      hands.close();
+    };
+  }, [isCameraActive, onResults]);
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -270,16 +174,22 @@ const TryOn = () => {
           {/* Main Video/Canvas Area */}
           <div className="lg:w-2/3">
             <div className="bg-gray-100 p-4 rounded-lg">
-              <div className="relative">
-                <video
-                  ref={videoRef}
-                  className="hidden"
-                  playsInline
-                />
-                <canvas
-                  ref={canvasRef}
-                  className="w-full border border-gray-200 rounded-lg"
-                />
+              <div className="relative" style={{ width: '640px', height: '480px' }}>
+                {isCameraActive && (
+                  <>
+                    <Webcam
+                      ref={webcamRef}
+                      mirrored={false}
+                      className="absolute top-0 left-0 w-full h-full"
+                    />
+                    <canvas
+                      ref={canvasRef}
+                      width={640}
+                      height={480}
+                      className="absolute top-0 left-0 w-full h-full"
+                    />
+                  </>
+                )}
               </div>
               
               <div className="mt-4 flex gap-4">
@@ -292,6 +202,7 @@ const TryOn = () => {
               </div>
             </div>
           </div>
+
           {/* Nail Designs Selection */}
           <div className="lg:w-1/3">
             <h2 className="text-2xl font-serif text-[#053342] mb-4">
@@ -303,9 +214,6 @@ const TryOn = () => {
                   key={design.id}
                   onClick={() => {
                     setSelectedNail(design.src);
-                    if (videoRef.current) {
-                      detectFrame();
-                    }
                   }}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     selectedNail === design.src
@@ -340,6 +248,7 @@ const TryOn = () => {
             </div>
           </div>
         </div>
+
         {isProcessing && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-lg">
@@ -352,4 +261,5 @@ const TryOn = () => {
     </div>
   );
 };
+
 export default TryOn;
