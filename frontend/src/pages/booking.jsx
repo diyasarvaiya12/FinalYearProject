@@ -1,17 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import assets from "../assets/assets";
+import { toast } from "react-toastify";
+import {useNavigate} from "react-router-dom";
+
+const backendUrl = "http://localhost:4000";
 
 const Booking = () => {
   const [selectedServices, setSelectedServices] = useState([]);
+    const navigate = useNavigate();
   const [name, setName] = useState(undefined);
   const [email, setEmail] = useState(undefined);
-  const [selectedTime, setSelectedTime] = useState(undefined);
+  const [phone, setPhone] = useState(undefined);
+  const [selectedTime, setSelectedTime] = useState("");
   const [selectedDate, setSelectedDate] = useState(undefined);
   const [showOptions, setShowOptions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
+  const [availableSlots, setAvailableSlots] = useState([]);
 
   const services = [
     {
@@ -50,7 +56,7 @@ const Booking = () => {
     {
       name: "Gel Extension",
       description: "Achieve glossy, long-lasting nails with a flawless finish.",
-      price: 8000,
+      price: 800,
     },
     {
       name: "Gel Polish",
@@ -60,67 +66,45 @@ const Booking = () => {
     },
   ];
 
-  const timeSlotsByDay = {
-    weekday: [
-      "10:00 AM",
-      "11:00 AM",
-      "12:00 PM",
-      "1:00 PM",
-      "2:00 PM",
-      "3:00 PM",
-      "4:00 PM",
-      "5:00 PM",
-      "6:00 PM",
-    ],
-    saturday: [
-      "10:00 AM",
-      "11:00 AM",
-      "12:00 PM",
-      "1:00 PM",
-      "2:00 PM",
-      "3:00 PM",
-      "4:00 PM",
-      "5:00 PM",
-      "6:00 PM",
-    ],
-    sunday: [
-      "1:00 PM",
-      "2:00 PM",
-      "3:00 PM",
-      "4:00 PM",
-      "5:00 PM",
-      "6:00 PM",
-      "7:00 PM",
-      "8:00 PM",
-    ],
-  };
-
-  const getDayType = (date) => {
-    const day = new Date(date).getDay();
-    if (day >= 1 && day <= 5) return "weekday";
-    if (day === 6) return "saturday";
-    if (day === 0) return "sunday";
-    return null;
-  };
-
   const handleDateChange = (event) => {
     const date = event.target.value;
-    
+
     // Ensure date is not in the past
     const selectedDate = new Date(date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     if (selectedDate < today) {
       setErrorMessage("Please select a future date");
       return;
     }
-    
+
     setSelectedDate(date);
-    const dayType = getDayType(date);
-    setSelectedTime(""); 
-    setAvailableTimeSlots(dayType ? timeSlotsByDay[dayType] : []);
+    setSelectedTime("");
   };
+
+  useEffect(() => {
+    const fetchAvailableSlots = async () => {
+      if (!selectedDate) return;
+
+      try {
+        setIsLoading(true);
+        const response = await axios.get(
+          `${backendUrl}/api/appointments/available-slots/${selectedDate}`
+        );
+        if (response.data.success) {
+          setAvailableSlots(response.data.slots);
+        }
+      } catch (error) {
+        console.error("Error fetching slots:", error);
+        toast.error("Failed to fetch available time slots");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAvailableSlots();
+  }, [selectedDate]);
 
   // Toggle Service Selection
   const toggleServiceSelection = () => {
@@ -144,51 +128,48 @@ const Booking = () => {
     0
   );
 
-  // Handle Appointment Booking with Google Auth Redirection
+  // Handle Appointment Booking
   const handleBookAppointment = async (e) => {
     e.preventDefault();
 
-    // Input validation
     if (
       !name ||
       !email ||
+      !phone ||
       !selectedDate ||
       !selectedTime ||
       selectedServices.length === 0
     ) {
-      setErrorMessage("Please fill all fields and select at least one service");
+      toast.error("Please fill all required fields");
       return;
     }
 
     try {
       setIsLoading(true);
-      setErrorMessage("");
-
-      // Prepare booking data to send to backend
-      const bookingData = {
+      const appointmentData = {
         name,
         email,
-        services: selectedServices,
+        phone,
         date: selectedDate,
-        time: selectedTime,
+        startTime: selectedTime,
+        services: selectedServices.map((service) => ({
+          ...service,
+          duration: service.duration || 30, // Default duration
+        })),
       };
 
-      // Encode booking data to pass through URL
-      const encodedBookingData = encodeURIComponent(
-        JSON.stringify(bookingData)
+      const response = await axios.post(
+        `${backendUrl}/api/appointments/create`,
+        appointmentData
       );
 
-      // Request authentication URL from backend
-      const response = await axios.get(`http://localhost:4000/auth-url`, {
-        params: { bookingData: encodedBookingData },
-      });
-
-      // Redirect to Google OAuth
-      window.location.href = response.data.authUrl;
+      if (response.data.success) {
+        navigate("/booking-success");
+      }
     } catch (error) {
-      console.error("Error initiating booking:", error);
-      setErrorMessage(
-        "Failed to connect to appointment service. Please try again."
+      console.error("Booking error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to book appointment"
       );
     } finally {
       setIsLoading(false);
@@ -292,6 +273,15 @@ const Booking = () => {
               placeholder="Your Email"
               className="w-full px-4 py-3 border border-gray-300 text-gray-700 focus:outline-none"
             />
+            <input
+              value={phone}
+              onInput={(event) => {
+                setPhone(event.target.value);
+              }}
+              type="text"
+              placeholder="Your Phone"
+              className="w-full px-4 py-3 border border-gray-300 text-gray-700 focus:outline-none"
+            />
 
             {/* Select Services Button */}
             <button
@@ -352,20 +342,19 @@ const Booking = () => {
               type="date"
               className="w-full px-4 py-3 border border-gray-300 text-gray-700 focus:outline-none"
             />
-            {availableTimeSlots.length > 0 && (
-              <select
-                value={selectedTime}
-                onChange={(event) => setSelectedTime(event.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 text-gray-700 focus:outline-none"
-              >
-                <option value="">Select Time</option>
-                {availableTimeSlots.map((slot) => (
-                  <option key={slot} value={slot}>
-                    {slot}
-                  </option>
-                ))}
-              </select>
-            )}
+            <select
+              value={selectedTime}
+              onChange={(e) => setSelectedTime(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 text-gray-700 focus:outline-none"
+              disabled={!selectedDate || isLoading}
+            >
+              <option value="">Select Time</option>
+              {availableSlots.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot}
+                </option>
+              ))}
+            </select>
 
             {/* Book Appointment Button */}
             <button

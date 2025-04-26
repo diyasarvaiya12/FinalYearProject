@@ -2,10 +2,13 @@ import express from 'express';
 import Appointment from '../models/appointmentModel.js';
 import adminAuth from '../middleware/adminAuth.js';
 import { checkSlotAvailability } from '../routes/check-route.js'; // Import the checkSlotAvailability function
+import { createAppointment, getAvailableSlots } from '../controllers/appointmentController.js';
 
 const router = express.Router();
 
 router.post('/check-slot', checkSlotAvailability);
+router.post('/create', createAppointment);
+router.get('/available-slots/:date', getAvailableSlots);
 
 // Get all appointments (admin only)
 router.get('/all', async (req, res) => {

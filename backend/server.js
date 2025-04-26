@@ -16,6 +16,7 @@ import { oauth2Client } from "./middleware/googleAuth.js";
 import { calendar } from "./utils/calendarServices.js";
 import Appointment from './models/appointmentModel.js';
 import moment from 'moment-timezone';
+import appointmentRoutes from './routes/appointmentRoute.js';
 
 dotenv.config(); // Load environment variables
 
@@ -32,6 +33,7 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
+app.use('/api/appointments', appointmentRoutes);
 app.use('/api/user', userRouter);
 app.use('/api/products', productRouter);
 app.use('/api/tryon', tryOnRoutes);  
