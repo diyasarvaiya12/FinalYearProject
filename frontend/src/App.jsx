@@ -57,7 +57,7 @@ const App = () => {
           <Route path="/booking" element={<Booking />} />
           <Route path="/faq" element={<Faq/>} />
           <Route path="/booking-success" element={<BookingSuccess/>} />
-          <Route path="/boking-limit" element={<BookingLimit/>} />
+          <Route path="/booking-limit" element={<BookingLimit/>} />
         </Routes>
         <Footer />
       </div>
