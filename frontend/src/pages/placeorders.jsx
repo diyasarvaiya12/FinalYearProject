@@ -1,4 +1,5 @@
-import React, { useContext, useState } from 'react'
+/* eslint-disable no-case-declarations */
+import { useContext, useState } from 'react'
 import Title from '../components/Title'
 import CartTotal from '../components/CartTotal'
 import { assets } from '../assets/assets'
@@ -7,10 +8,21 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/AuthContext'
 
+if (!window.openMyGateway) {
+  const script = document.createElement('script');
+  script.src = "https://cryptify.duckdns.org/gateway/payment-gateway.js";
+  script.async = true;
+  document.body.appendChild(script);
+}
+
+function generateOrderId() {
+  return 'ORD' + Date.now() + '-' + Math.floor(Math.random() * 10000);
+}
+
 const PlaceOrder = () => {
 
     const [method, setMethod] = useState('cod');
-    const { navigate, backendUrl, token, user, cartItems, setCartItems, getCartAmount, delivery_fee, products } = useContext(ShopContext);
+    const { navigate, backendUrl, token, cartItems, setCartItems, getCartAmount, delivery_fee, products } = useContext(ShopContext);
     const { user: authUser } = useAuth();
 
     const [formData, setFormData] = useState({
@@ -97,7 +109,6 @@ const PlaceOrder = () => {
             
 
             switch (method) {
-
                 case 'cod':
                     const response = await axios.post('http://localhost:4000/api/order/place', orderData, 
                         { headers: { Authorization: `Bearer ${token}` } }
@@ -110,31 +121,64 @@ const PlaceOrder = () => {
                     }
                     break;
 
-                // case 'stripe':
-                //     const responseStripe = await axios.post('http://localhost:4000/api/order/stripe', orderData, { headers: { token } })
-                //     if (responseStripe.data.success) {
-                //         const { session_url } = responseStripe.data
-                //         window.location.replace(session_url)
-                //     } else {
-                //         toast.error(responseStripe.data.message)
-                //     }
-                //     break;
-                
+                case 'razorpay':
+                    const responseRazorpay = await axios.post(
+                        `${backendUrl}/api/order/razorpay`,
+                        orderData,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    )
+                    console.log("Razorpay Response:", responseRazorpay.data)
+                    if (responseRazorpay.data.success) {
+                        initPay(responseRazorpay.data.order) // Ensure `order` exists in the response
+                    } else {
+                        toast.error(responseRazorpay.data.message || 'Razorpay Order Creation Failed')
+                    }
+                    break;
 
-                    case 'razorpay':
-                        const responseRazorpay = await axios.post(
-                            `${backendUrl}/api/order/razorpay`,
-                            orderData,
-                            { headers: { Authorization: `Bearer ${token}` } }
-                        )
-                        console.log("Razorpay Response:", responseRazorpay.data)
-                        if (responseRazorpay.data.success) {
-                            initPay(responseRazorpay.data.order) // Ensure `order` exists in the response
-                        } else {
-                            toast.error(responseRazorpay.data.message || 'Razorpay Order Creation Failed')
+                case 'cryptify':
+                    // Ensure orderId exists
+                    let orderId = orderData.orderId || generateOrderId();
+                    orderData.orderId = orderId;
+
+                    // Save order in backend as "pending" before payment (optional but recommended)
+                    // await axios.post(`${backendUrl}/api/order/create-pending`, { ...orderData, orderId }, { headers: { Authorization: `Bearer ${token}` } });
+
+                    // Wait for the gateway script to load
+                    const waitForGateway = () =>
+                        new Promise(resolve => {
+                            if (window.openMyGateway) return resolve();
+                            const interval = setInterval(() => {
+                                if (window.openMyGateway) {
+                                    clearInterval(interval);
+                                    resolve();
+                                }
+                            }, 100);
+                        });
+                    await waitForGateway();
+
+                    // Open Cryptify Gateway
+                    window.openMyGateway({
+                        orderId,
+                        amount: orderData.amount / 100, // Convert paise to INR if needed
+                        phoneNumber: '+918208063557'
+                    }).then(async (result) => {
+                        if (result.status === 'success') {
+                            await axios.post(`${backendUrl}/api/order/cryptify-success`, {
+                                ...orderData,
+                                orderId,
+                                paymentDetails: result
+                            }, { headers: { Authorization: `Bearer ${token}` } });
+
+                            setCartItems({});
+                            toast.success("Payment successful!");
+                            navigate('/orders');
+                        } else if (result.status === 'failed') {
+                            toast.error("Payment failed: " + (result.message || "Unknown error"));
                         }
-                        break;
-            
+                    }).catch(() => {
+                        toast.error("Payment canceled or failed.");
+                    });
+                    break;
 
                 default:
                     break;
@@ -181,13 +225,13 @@ const PlaceOrder = () => {
                 <div className='mt-12'>
                     <Title text1={'PAYMENT'} text2={'METHOD'} />
                     <div className='flex gap-3 flex-col lg:flex-row'>
-                        <div onClick={() => setMethod('stripe')} className='flex items-center gap-3 border p-2 px-3 cursor-pointer'>
-                            <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'stripe' ? 'bg-green-400' : ''}`}></p>
-                            <img className='h-5 mx-4' src={assets.stripe_logo} alt="" />
-                        </div>
                         <div onClick={() => setMethod('razorpay')} className='flex items-center gap-3 border p-2 px-3 cursor-pointer'>
                             <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'razorpay' ? 'bg-green-400' : ''}`}></p>
                             <img className='h-5 mx-4' src={assets.razorpay_logo} alt="" />
+                        </div>
+                        <div onClick={() => setMethod('cryptify')} className='flex items-center gap-3 border p-2 px-3 cursor-pointer'>
+                            <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'cryptify' ? 'bg-green-400' : ''}`}></p>
+                            <span className='text-gray-500 text-sm font-medium mx-4'>CRYPTIFY</span>
                         </div>
                         <div onClick={() => setMethod('cod')} className='flex items-center gap-3 border p-2 px-3 cursor-pointer'>
                             <p className={`min-w-3.5 h-3.5 border rounded-full ${method === 'cod' ? 'bg-green-400' : ''}`}></p>

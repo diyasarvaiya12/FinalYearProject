@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID || "ACcd3af0a207a3126feab61826cca8c863" ;
-const authToken = process.env.TWILIO_AUTH_TOKEN || "7c9a054a45f66c69353455abc1209260";
+const authToken = process.env.TWILIO_AUTH_TOKEN || "da69e6f70342e662c45d1a12e397a42c";
 const client = twilio(accountSid, authToken);
 
 async function createService() {
