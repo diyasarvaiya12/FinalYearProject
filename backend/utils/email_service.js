@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const sendOrderConfirmationEmail = async (userEmail, address, items, amount, orderid) => {
     try {

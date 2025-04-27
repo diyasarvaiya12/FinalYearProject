@@ -1,6 +1,8 @@
 import Appointment from '../models/appointmentModel.js';
 import Worker from '../models/workerModel.js';
 import moment from 'moment-timezone';
+import { createCalendarEvent, getAuthUrl } from '../utils/googleCalendar.js';
+import { sendBookingConfirmationEmail } from '../utils/bookingEmail.js';
 
 // Get available time slots
 export const getAvailableSlots = async (req, res) => {
@@ -91,8 +93,22 @@ export const createAppointment = async (req, res) => {
             });
         }
 
-        // Create appointment
+        // Create appointment first
         const appointment = new Appointment({
+            name,
+            email,
+            phone,
+            date,
+            startTime,
+            endTime,
+            services: validServices,
+            estimatedPrice: validServices.reduce((sum, service) => sum + service.price, 0),
+            status: 'Pending'
+        });
+
+        await appointment.save();
+
+        await sendBookingConfirmationEmail(email, {
             name,
             email,
             phone,
@@ -103,19 +119,35 @@ export const createAppointment = async (req, res) => {
             estimatedPrice: validServices.reduce((sum, service) => sum + service.price, 0)
         });
 
-        await appointment.save();
+        // Generate auth URL with proper redirect
+        const authUrl = getAuthUrl({
+            appointmentId: appointment._id,
+            name,
+            email,
+            phone,
+            date,
+            startTime,
+            endTime,
+            services: validServices
+        });
 
-        res.status(201).json({
+        // Only ONE response per request!
+        return res.status(201).json({
             success: true,
             appointment,
-            message: 'Appointment booked successfully!'
+            authUrl
         });
 
     } catch (error) {
-        console.error('Appointment creation error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Error creating appointment'
-        });
+        // Only ONE response per request!
+        if (!res.headersSent) {
+            return res.status(500).json({
+                success: false,
+                message: error.message || 'Error creating appointment'
+            });
+        } else {
+            // Already sent a response, just log the error
+            console.error('Error after response sent:', error);
+        }
     }
 };

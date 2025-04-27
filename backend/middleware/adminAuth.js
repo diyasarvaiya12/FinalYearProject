@@ -1,4 +1,6 @@
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables from .env file
 
 const adminAuth = async (req, res, next) => {
     try {

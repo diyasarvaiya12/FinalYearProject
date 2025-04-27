@@ -2,13 +2,11 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import assets from "../assets/assets";
 import { toast } from "react-toastify";
-import {useNavigate} from "react-router-dom";
 
 const backendUrl = "http://localhost:4000";
 
 const Booking = () => {
   const [selectedServices, setSelectedServices] = useState([]);
-    const navigate = useNavigate();
   const [name, setName] = useState(undefined);
   const [email, setEmail] = useState(undefined);
   const [phone, setPhone] = useState(undefined);
@@ -132,49 +130,33 @@ const Booking = () => {
   const handleBookAppointment = async (e) => {
     e.preventDefault();
 
-    if (
-      !name ||
-      !email ||
-      !phone ||
-      !selectedDate ||
-      !selectedTime ||
-      selectedServices.length === 0
-    ) {
-      toast.error("Please fill all required fields");
-      return;
+    if (!name || !email || !phone || !selectedDate || !selectedTime || selectedServices.length === 0) {
+        toast.error('Please fill all required fields');
+        return;
     }
 
     try {
-      setIsLoading(true);
-      const appointmentData = {
-        name,
-        email,
-        phone,
-        date: selectedDate,
-        startTime: selectedTime,
-        services: selectedServices.map((service) => ({
-          ...service,
-          duration: service.duration || 30, // Default duration
-        })),
-      };
+        setIsLoading(true);
+        const response = await axios.post(`${backendUrl}/api/appointments/create`, {
+            name,
+            email,
+            phone,
+            date: selectedDate,
+            startTime: selectedTime,
+            services: selectedServices
+        });
 
-      const response = await axios.post(
-        `${backendUrl}/api/appointments/create`,
-        appointmentData
-      );
-
-      if (response.data.success) {
-        navigate("/booking-success");
-      }
+        if (response.data.success && response.data.authUrl) {
+            // Redirect to Google OAuth
+            window.location.href = response.data.authUrl;
+        }
     } catch (error) {
-      console.error("Booking error:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to book appointment"
-      );
+        console.error('Booking error:', error);
+        toast.error(error.response?.data?.message || 'Failed to book appointment');
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
 
   return (
     <div className="min-h-screen bg-white py-10 px-8">

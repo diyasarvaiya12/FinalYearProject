@@ -17,6 +17,7 @@ import { calendar } from "./utils/calendarServices.js";
 import Appointment from './models/appointmentModel.js';
 import moment from 'moment-timezone';
 import appointmentRoutes from './routes/appointmentRoute.js';
+import { createCalendarEvent } from './utils/googleCalendar.js';
 
 dotenv.config(); // Load environment variables
 
@@ -65,85 +66,45 @@ app.get("/auth-url", (req, res) => {
 });
 
 app.get("/oauth2callback", async (req, res) => {
-  const { code, state } = req.query;
+    const { code, state } = req.query;
 
-  try {
-    // Exchange code for tokens
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-
-    // Parse booking data from state parameter
-    const bookingData = JSON.parse(decodeURIComponent(state));
-    const { name, email, services, date, time } = bookingData;
-
-    // Format services for event description
-    const servicesText = services
-      .map((s) => `${s.name} - ₹${s.price}`)
-      .join("\n");
-    const totalPrice = services.reduce((sum, s) => sum + s.price, 0);
-
-    // Check existing bookings for this timeslot
-    const existingBookings = await Appointment.countDocuments({
-      date: date,
-      time: time,
-    });
-
-    if (existingBookings >= 4) {
-      return res.redirect(`http://localhost:5173/booking-limit`);
+    if (!code || !state) {
+        console.error("Missing code or state parameter");
+        return res.redirect(`${process.env.FRONTEND_URL}/booking-error`);
     }
 
-    // Create appointment in MongoDB with more details
-    const appointment = new Appointment({
-      name,
-      email,
-      date,
-      time,
-      services,
-      estimatedPrice: totalPrice,
-      status: 'Confirmed'
-    });
+    try {
+        // Exchange code for tokens with explicit redirect URI
+        const { tokens } = await oauth2Client.getToken({
+            code,
+            redirect_uri: process.env.GOOGLE_REDIRECT_URI
+        });
+        
+        // Parse booking data
+        const bookingData = JSON.parse(decodeURIComponent(state));
 
-    await appointment.save();
+        // Set credentials for this request
+        oauth2Client.setCredentials(tokens);
 
-    // Fix timezone issue by using moment-timezone
-    const startTime = moment.tz(`${date} ${time}`, "YYYY-MM-DD hh:mm A", "Asia/Kolkata");
-    const endTime = moment(startTime).add(1, 'hours');
+        // Create calendar event
+        await createCalendarEvent(tokens, bookingData);
 
-    // Create calendar event
-    const event = {
-      summary: "Nail Appointment at NailStory",
-      location: "NailStory Salon",
-      description: `Services:\n${servicesText}\n\nTotal: ₹${totalPrice}`,
-      start: {
-        dateTime: startTime.format(),
-        timeZone: "Asia/Kolkata",
-      },
-      end: {
-        dateTime: endTime.format(),
-        timeZone: "Asia/Kolkata",
-      },
-      attendees: [{ email }],
-      reminders: {
-        useDefault: false,
-        overrides: [
-          { method: "email", minutes: 24 * 60 },
-          { method: "popup", minutes: 60 },
-        ],
-      },
-    };
+        // Update appointment status
+        await Appointment.findOneAndUpdate(
+            { 
+                name: bookingData.name,
+                email: bookingData.email,
+                date: bookingData.date,
+                startTime: bookingData.startTime
+            },
+            { status: 'Confirmed' }
+        );
 
-    const createdEvent = await calendar.events.insert({
-      auth: oauth2Client,
-      calendarId: "primary",
-      resource: event,
-    });
-
-    // Redirect to frontend with success status
-    res.redirect(`http://localhost:5173/booking-success`);
-  } catch (error) {
-    console.error("Error creating appointment:", error);
-    res.redirect(`${process.env.FRONTEND_URL}/booking-error`);
-  }
+        res.redirect(`${process.env.FRONTEND_URL}/booking-success`);
+    } catch (error) {
+        console.error("OAuth/Calendar Error:", error);
+        res.redirect(`${process.env.FRONTEND_URL}/booking-error`);
+    }
 });
 
 // Default Route
