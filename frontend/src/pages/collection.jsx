@@ -111,19 +111,19 @@ const collection = () => {
               <input className='w-3' type="checkbox" value={'Tools'} onChange={toggleSubCategory}/> Tools
             </p>
             <p className='flex gap-2'>
-              <input className='w-3' type="checkbox" value={'cleaning_Preperation'} onChange={toggleSubCategory}/> cleaning prep
+              <input className='w-3' type="checkbox" value={'cleaning_preparation'} onChange={toggleSubCategory}/> Cleaning prep
             </p>
             <p className='flex gap-2'>
               <input className='w-3' type="checkbox" value={'curing'} onChange={toggleSubCategory} /> Curing
             </p>
             <p className='flex gap-2'>
-              <input className='w-3' type="checkbox" value={'decorative_items'} onChange={toggleSubCategory}/> decorative items
+              <input className='w-3' type="checkbox" value={'decorative_items'} onChange={toggleSubCategory}/> Decorative Items
             </p>
             <p className='flex gap-2'>
-              <input className='w-3' type="checkbox" value={'gelpolish'} onChange={toggleSubCategory}/> gelpolish
+              <input className='w-3' type="checkbox" value={'gelpolish'} onChange={toggleSubCategory}/> Gelpolish
             </p>
             <p className='flex gap-2'>
-              <input className='w-3' type="checkbox" value={'pressons'} onChange={toggleSubCategory}/> press-ons
+              <input className='w-3' type="checkbox" value={'pressons'} onChange={toggleSubCategory}/> Press-Ons
             </p>
 
           </div>

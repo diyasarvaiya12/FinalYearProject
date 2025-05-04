@@ -84,7 +84,7 @@ const placeOrderRazorpay = async (req, res) => {
 
         const newOrder = new orderModel(orderData);
         await newOrder.save();
-        await sendOrderConfirmationEmail(orderData.address.email, orderData.address, orderData.items, orderData.amount);
+        await sendOrderConfirmationEmail(orderData.address.email, orderData.address, orderData.items, orderData.amount,orderData.orderId);
 
         const options = {
             amount: amount,

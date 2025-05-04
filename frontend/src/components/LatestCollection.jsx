@@ -46,9 +46,9 @@ const LatestCollection = () => {
     <div className="my-10 relative">
       <div className="text-center py-8 text-3xl">
       <h2 className='text-5xl font-serif text-[#053342] '>~Latest Collection~</h2>
-        <p className="w-3/4 m-auto text-xs sm:text-sm md:text-base text-gray-600">
+        {/* <p className="w-3/4 m-auto text-xs sm:text-sm md:text-base text-gray-600">
           Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the.
-        </p>
+        </p> */}
       </div>
 
       {/* Slider Container */}

@@ -16,34 +16,31 @@ const TryOn = () => {
   const nailDesigns = [
     {
       id: 1,
-      src: "/nail.png",
-      name: "Classic French",
+      src: "/redpreess1.png", // overlay image
+      previewSrc: "/redpreess.png", // UI preview image
+      name: "Classic red",
       price: "₹299",
-      description: "Classic white-tipped French manicure"
+      description: "Classic red color with a glossy finish",
     },
     {
       id: 2,
-      src: "/nail.png",
-      name: "Glitter Gold",
+      src: "/pink1.png",
+      previewSrc: "/pink.png",
+      name: "Pink chrome",
       price: "₹399",
-      fingerNails: {
-        thumb: "/thumb2.png",
-        index: "/index2.png",
-        middle: "/middle2.png",
-        ring: "/ring2.png",
-        pinky: "/pinky2.png"
-      }
     },
     {
       id: 3,
-      src: "/nail.png",
-      name: "Rose Pink",
-      price: "₹349"
+      src: "/nail3.png",
+      previewSrc: "/nail3-pic.png",
+      name: "Black and silver",
+      price: "₹379"
     },
     {
       id: 4,
-      src: "/nail.png",
-      name: "Abstract Art",
+      src: "/nail4.png",
+      previewSrc: "/nail4-pic.png",
+      name: "purple cateyee",
       price: "₹449"
     }
   ];
@@ -213,7 +210,7 @@ const TryOn = () => {
                 <button
                   key={design.id}
                   onClick={() => {
-                    setSelectedNail(design.src);
+                    setSelectedNail(design.src); // Still uses overlay image for the actual process
                   }}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     selectedNail === design.src
@@ -222,7 +219,7 @@ const TryOn = () => {
                   }`}
                 >
                   <img
-                    src={design.src}
+                    src={design.previewSrc} // Use preview image in UI
                     alt={design.name}
                     className="w-full h-32 object-cover rounded-lg mb-2"
                   />
@@ -263,3 +260,4 @@ const TryOn = () => {
 };
 
 export default TryOn;
+
